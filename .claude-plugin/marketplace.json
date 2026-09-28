@@ -10,7 +10,7 @@
       "name": "proc-gc",
       "source": "./",
       "description": "Stop orphaned processes that keep burning CPU after the session that started them is gone.",
-      "version": "0.1.0"
+      "version": "0.1.1"
     }
   ]
 }

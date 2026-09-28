@@ -41,7 +41,8 @@ later sat at 0.12%, with nothing stopped.
    Each line is a process whose parent died, judged with every descendant it
    has (`+N`), and the reason it is kept: `build or test (…)`, `owned by live
    agent session pid N`, `an agent session`, `matches hold pattern …`,
-   `working directory unreadable`, or `orphan, no owner found`, the only kind
+   `working directory unreadable, its own or an agent's` (ownership cannot be
+   ruled out), or `orphan, no owner found`, the only kind
    that can be reaped. launchd/systemd jobs, system components and parts of
    running apps are counted in the header, not listed. Where samples exist it
    shows the CPU share and for how long it has been hot.

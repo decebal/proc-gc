@@ -34,8 +34,8 @@ pub enum Verdict {
     AgentOwned(u32),
     /// Matches a configured hold pattern, anywhere in the tree.
     Held(String),
-    /// The root's working directory could not be read, so ownership cannot be
-    /// ruled out.
+    /// The root's working directory, or a live agent session's, could not be
+    /// read, so ownership cannot be ruled out.
     Unknown,
     Candidate,
 }
@@ -51,7 +51,7 @@ impl Verdict {
             Verdict::Build(why) => format!("build or test ({why})"),
             Verdict::AgentOwned(pid) => format!("owned by live agent session pid {pid}"),
             Verdict::Held(p) => format!("matches hold pattern {p:?}"),
-            Verdict::Unknown => "working directory unreadable".into(),
+            Verdict::Unknown => "working directory unreadable, its own or an agent's".into(),
             Verdict::Candidate => "orphan, no owner found".into(),
         }
     }
@@ -161,6 +161,9 @@ pub fn classify(procs: &[Proc], members: &[usize], cx: &Context<'_>) -> Verdict 
         {
             return Verdict::AgentOwned(*agent);
         }
+    }
+    if cx.agents.iter().any(|(_, acwd)| acwd.is_none()) {
+        return Verdict::Unknown;
     }
     Verdict::Candidate
 }
