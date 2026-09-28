@@ -1,6 +1,6 @@
 [package]
 name = "proc-gc"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 # std::fs::File::try_lock, used for the single-run lock.
 rust-version = "1.89"
@@ -14,6 +14,8 @@ include = [
   "src/**",
   "skills/**",
   "tests/**",
+  ".claude-plugin/**",
+  "hooks/**",
   "config.example.toml",
   "README.md",
   "LICENSE",

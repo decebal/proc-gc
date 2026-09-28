@@ -221,6 +221,19 @@ fn managed_foreign_held_and_unknown_are_never_candidates() {
     );
 }
 
+/// A session whose directory cannot be read may be the owner: an agent that
+/// owns nothing it can prove must still hold the trees it might own.
+#[test]
+fn an_agent_whose_directory_cannot_be_read_holds_every_unmatched_tree() {
+    let w = World::new(vec![
+        p(1, 0, "/sbin/launchd"),
+        p(700, 650, "/Users/me/.local/bin/claude"),
+        p(850, 1, "/opt/homebrew/bin/spinner"),
+    ])
+    .cwd(850, "/Users/me/Documents/app");
+    assert_eq!(w.judge(850), Verdict::Unknown);
+}
+
 #[test]
 fn home_and_root_cwds_are_too_broad_to_prove_ownership() {
     let w = World::new(vec![
