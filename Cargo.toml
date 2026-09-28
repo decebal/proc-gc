@@ -1,0 +1,42 @@
+[package]
+name = "proc-gc"
+version = "0.1.0"
+edition = "2021"
+# std::fs::File::try_lock, used for the single-run lock.
+rust-version = "1.89"
+description = "Reap processes whose owner is gone and that have burned CPU for an hour, never a build, a service, an app or an agent session's work. Ships a Claude Code skill."
+license = "MIT"
+repository = "https://github.com/decebal/proc-gc"
+readme = "README.md"
+keywords = ["process", "orphan", "cpu", "cleanup", "claude-code"]
+categories = ["command-line-utilities", "development-tools"]
+include = [
+  "src/**",
+  "skills/**",
+  "tests/**",
+  "config.example.toml",
+  "README.md",
+  "LICENSE",
+  "Cargo.toml",
+  "Cargo.lock",
+]
+
+[package.metadata.binstall]
+pkg-url = "{ repo }/releases/download/v{ version }/{ name }-{ target }-v{ version }{ archive-suffix }"
+bin-dir = "{ name }-{ target }-v{ version }/{ bin }{ binary-ext }"
+pkg-fmt = "tgz"
+
+[lib]
+name = "proc_gc"
+path = "src/lib.rs"
+
+[[bin]]
+name = "proc-gc"
+path = "src/main.rs"
+
+[dependencies]
+serde_json = "1"
+
+[lints.clippy]
+absolute_paths = "warn"
+uninlined_format_args = "warn"

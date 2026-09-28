@@ -1,0 +1,16 @@
+{
+  "name": "proc-gc",
+  "description": "The proc-gc plugin: stop orphaned processes that keep burning CPU, safely.",
+  "owner": {
+    "name": "Decebal Dobrica",
+    "url": "https://github.com/decebal"
+  },
+  "plugins": [
+    {
+      "name": "proc-gc",
+      "source": "./",
+      "description": "Stop orphaned processes that keep burning CPU after the session that started them is gone.",
+      "version": "0.1.0"
+    }
+  ]
+}

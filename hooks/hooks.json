@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "b=\"$(command -v proc-gc || echo \"$HOME/.cargo/bin/proc-gc\")\"; if [ -x \"$b\" ]; then \"$b\" hook; else echo 'proc-gc plugin: the proc-gc binary is not installed. Install it with: cargo install proc-gc'; fi",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

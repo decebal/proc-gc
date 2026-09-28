@@ -1,0 +1,72 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        # macOS reads launchctl and lsof; Linux reads /proc and cgroups. Both
+        # paths decide what may be signalled, so both run.
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          components: rustfmt, clippy
+      - run: cargo fmt --check
+      - run: cargo clippy --all-targets -- -D warnings
+      - run: cargo test
+
+      - name: Scan and dry run with the real binary
+        shell: bash
+        run: |
+          cargo build --release
+          fx=$(mktemp -d)
+          XDG_STATE_HOME="$fx/state" target/release/proc-gc scan --json > "$fx/scan.json"
+          jq -e '.orphans | type == "array"' "$fx/scan.json"
+          XDG_STATE_HOME="$fx/state" target/release/proc-gc run --dry-run
+
+      # A busy loop orphaned to launchd must be stopped on the third run: two
+      # 35-second intervals make 70 seconds of heat against a one-minute
+      # threshold. Linux is left out because every step of a hosted runner
+      # lives in the runner's systemd service cgroup, which proc-gc correctly
+      # treats as managed.
+      - name: Stop a real hot orphan
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          bin="$PWD/target/release/proc-gc"
+          fx=$(mktemp -d)
+          printf '[proc-gc]\nmin_hot_minutes = "1"\nmax_gap_minutes = "1"\ncpu_percent = "50"\ngrace_seconds = "2"\n' > "$fx/gc.toml"
+          export XDG_STATE_HOME="$fx/state"
+          cd "$fx"
+          ( ( while :; do :; done ) & echo $! > "$fx/pid" )
+          pid=$(cat "$fx/pid")
+          ps -o pid=,ppid=,args= -p "$pid"
+          "$bin" run --config "$fx/gc.toml"
+          sleep 35
+          "$bin" run --config "$fx/gc.toml"
+          sleep 35
+          "$bin" run --config "$fx/gc.toml"
+          if kill -0 "$pid" 2>/dev/null; then
+            echo "the hot orphan survived"
+            "$bin" scan --config "$fx/gc.toml"
+            kill -9 "$pid"
+            exit 1
+          fi
+          jq -e --argjson pid "$pid" '.reaped[] | select(.pid == $pid)' "$fx/state/proc-gc/last-run.json"
+          "$bin" hook --config "$fx/gc.toml" | grep -F "stopped $pid"
+
+      - name: Package includes the skill
+        shell: bash
+        run: |
+          cargo package --list --allow-dirty > files.txt
+          grep -qx 'skills/proc-gc/SKILL.md' files.txt || { echo "skill missing from the crate"; cat files.txt; exit 1; }
+          grep -qx 'config.example.toml' files.txt || { echo "config template missing from the crate"; cat files.txt; exit 1; }
