@@ -1,0 +1,52 @@
+name: release
+
+# Tag vX.Y.Z → prebuilt archives named the way Cargo.toml's
+# [package.metadata.binstall] expects, so `cargo binstall proc-gc` skips the
+# compile. Publishing the crate itself is a separate, manual `cargo publish`.
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  check-version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tag, crate, plugin and marketplace agree
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          crate=$(grep -m1 '^version' Cargo.toml | cut -d'"' -f2)
+          plugin=$(jq -r .version .claude-plugin/plugin.json)
+          market=$(jq -r '.plugins[0].version' .claude-plugin/marketplace.json)
+          echo "tag=$tag crate=$crate plugin=$plugin marketplace=$market"
+          [ "$tag" = "$crate" ] && [ "$tag" = "$plugin" ] && [ "$tag" = "$market" ]
+
+  build:
+    needs: check-version
+    strategy:
+      matrix:
+        include:
+          - { target: aarch64-apple-darwin, os: macos-latest }
+          - { target: x86_64-apple-darwin, os: macos-latest }
+          - { target: x86_64-unknown-linux-gnu, os: ubuntu-latest }
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          target: ${{ matrix.target }}
+      - run: cargo build --release --locked --target ${{ matrix.target }}
+      - name: Archive
+        shell: bash
+        run: |
+          name="proc-gc-${{ matrix.target }}-${GITHUB_REF_NAME}"
+          mkdir "$name"
+          cp "target/${{ matrix.target }}/release/proc-gc" README.md LICENSE "$name/"
+          tar czf "$name.tgz" "$name"
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: proc-gc-${{ matrix.target }}-${{ github.ref_name }}.tgz

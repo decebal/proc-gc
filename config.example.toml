@@ -1,0 +1,28 @@
+# proc-gc settings. `proc-gc install` writes this file to
+# ~/.config/proc-gc/config.toml when none exists. Numbers are quoted strings.
+
+[proc-gc]
+# How long an orphan tree must burn CPU, measured across scheduled runs,
+# before it is stopped. One sample never counts.
+min_hot_minutes      = "60"
+
+# Percent of one core the tree must use in EVERY interval between samples.
+# 80 means 0.8 of a core; 250 means two and a half.
+cpu_percent          = "80"
+
+# A gap between samples longer than this (the machine slept, the schedule
+# stopped) starts the count over. Must not exceed min_hot_minutes.
+max_gap_minutes      = "20"
+
+# Seconds between SIGTERM and SIGKILL. At most 60.
+grace_seconds        = "10"
+
+# The session hook mentions a hot orphan once it has been hot this long.
+report_after_minutes = "15"
+
+# Extra executable names that count as a build or a test run, on top of the
+# built-in list (cargo, rustc, linkers, make, ninja, xcodebuild, ...).
+build_names          = []
+
+# Never stop a tree whose command line contains any of these strings.
+hold                 = []

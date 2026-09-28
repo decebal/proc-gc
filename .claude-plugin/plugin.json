@@ -1,0 +1,13 @@
+{
+  "name": "proc-gc",
+  "version": "0.1.0",
+  "description": "Stop orphaned processes that keep burning CPU after the session that started them is gone, without touching builds, services, apps or a live agent's background work. A skill for the proc-gc binary, plus a session-start line when something was stopped or is running hot.",
+  "author": {
+    "name": "Decebal Dobrica",
+    "url": "https://github.com/decebal"
+  },
+  "homepage": "https://github.com/decebal/proc-gc",
+  "repository": "https://github.com/decebal/proc-gc",
+  "license": "MIT",
+  "keywords": ["cpu", "orphan-processes", "process-management", "cleanup"]
+}
