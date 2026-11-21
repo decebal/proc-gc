@@ -42,3 +42,12 @@ serde_json = "1"
 [lints.clippy]
 absolute_paths = "warn"
 uninlined_format_args = "warn"
+
+# Full debug info for every dependency is most of a dev build's size on disk.
+# Dependencies keep none; workspace crates keep line tables, so a backtrace
+# still names the file and line in our code.
+[profile.dev]
+debug = "line-tables-only"
+
+[profile.dev.package."*"]
+debug = false
